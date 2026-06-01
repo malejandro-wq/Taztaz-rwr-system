@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAZTAZ RWR SYSTEM</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;color:#00ff66;font-family:"Courier New", monospace;overflow:hidden;height:100vh;}
+body::before{content:"";position:absolute;width:100%;height:100%;background:repeating-linear-gradient(transparent 0px,rgba(0,255,0,.04) 2px,transparent 4px);pointer-events:none;}
+.scan{position:absolute;width:100%;height:4px;background:rgba(0,255,100,.4);animation:scan 4s linear infinite;}
+@keyframes scan{from{top:-10px;}to{top:100%;}}
+.container{width:90%;max-width:1000px;margin:auto;margin-top:30px;border:2px solid #00ff66;padding:20px;box-shadow:0 0 15px #00ff66,inset 0 0 15px #00ff66;}
+.title{text-align:center;font-size:70px;letter-spacing:8px;text-shadow:0 0 10px #00ff66,0 0 20px #00ff66,0 0 40px #00ff66;animation:blink 2s infinite;}
+@keyframes blink{50%{opacity:.75;}}
+.panel{display:flex;justify-content:space-between;align-items:center;margin-top:30px;flex-wrap:wrap;}
+.info{width:45%;min-width:280px;}
+.info h2{margin-bottom:15px;}
+.info p{margin:10px 0;font-size:18px;}
+.radar{width:320px;height:320px;border:2px solid #00ff66;border-radius:50%;position:relative;overflow:hidden;box-shadow:0 0 20px #00ff66;}
+.radar::before{content:"";position:absolute;width:240px;height:240px;border:1px solid rgba(0,255,102,.3);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+.radar::after{content:"";position:absolute;width:120px;height:120px;border:1px solid rgba(0,255,102,.3);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+.sweep{position:absolute;width:50%;height:2px;background:#00ff66;top:50%;left:50%;transform-origin:left center;animation:radarSweep 3s linear infinite;box-shadow:0 0 15px #00ff66;}
+@keyframes radarSweep{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.pulse{position:absolute;border:2px solid #00ff66;border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%);animation:pulse 1s linear;}
+@keyframes pulse{from{width:0;height:0;opacity:1;}to{width:300px;height:300px;opacity:0;}}
+.log{margin-top:25px;border:1px solid #00ff66;padding:10px;height:180px;overflow-y:auto;font-size:14px;}
+.alert{color:#ff4444;text-shadow:0 0 10px red,0 0 20px red;}
+.corner-top{position:absolute;top:15px;left:15px;font-size:14px;}
+.corner-bottom{position:absolute;bottom:15px;right:15px;font-size:14px;text-align:right;}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+<div class="corner-top">AZ: 270°<br>SIG: 87%<br>MODE: SEARCH</div>
+<div class="corner-bottom">TAZTAZ RWR SYSTEM<br>REV 1.0</div>
+<div class="container">
+<div class="title">TAZTAZ</div>
+<div class="panel">
+<div class="info">
+<h2>SISTEMA DE ADVERTENCIA</h2>
+<p>ESTADO: <span id="estado">OPERATIVO</span></p>
+<p>RUMBO: <span id="heading">000°</span></p>
+<p>OBJETIVO: <span id="target">NINGUNO</span></p>
+<p>ALERTA: <span id="alert">NORMAL</span></p>
+</div>
+<div class="radar" id="radar"><div class="sweep"></div></div>
+</div>
+<div class="log" id="log">
+>> SISTEMA TAZTAZ INICIADO<br>
+>> MÓDULO RWR ONLINE<br>
+>> ENLACE DE DATOS ESTABLECIDO<br>
+>> ESPERANDO EVENTOS...
+</div>
+</div>
+<script>
+let rumbo=0;
+const heading=document.getElementById("heading");
+const target=document.getElementById("target");
+const alertText=document.getElementById("alert");
+const radar=document.getElementById("radar");
+const log=document.getElementById("log");
+function addLog(text){
+ const time=new Date().toLocaleTimeString();
+ log.innerHTML+=`<br>> [${time}] ${text}`;
+ log.scrollTop=log.scrollHeight;
+}
+document.addEventListener("keydown",function(event){
+ switch(event.key.toLowerCase()){
+  case "w": rumbo=(rumbo+10)%360; heading.textContent=rumbo+"°"; addLog("RUMBO AUMENTADO"); break;
+  case "s": rumbo=(rumbo-10+360)%360; heading.textContent=rumbo+"°"; addLog("RUMBO REDUCIDO"); break;
+  case "a": rumbo=(rumbo+90)%360; heading.textContent=rumbo+"°"; addLog("GIRO A IZQUIERDA"); break;
+  case "d": rumbo=(rumbo+270)%360; heading.textContent=rumbo+"°"; addLog("GIRO A DERECHA"); break;
+  case "r":
+   alertText.innerHTML="<span class='alert'>RADAR LOCK</span>";
+   addLog("AMENAZA DETECTADA");
+   setTimeout(()=>{alertText.textContent="NORMAL";},5000);
+   break;
+  case "t":
+   const objetivos=["MIG-29","SU-27","AWACS","DRON","DESCONOCIDO","SEÑAL DÉBIL"];
+   const obj=objetivos[Math.floor(Math.random()*objetivos.length)];
+   target.textContent=obj;
+   addLog("OBJETIVO IDENTIFICADO: "+obj);
+   break;
+  case " ":
+   const pulse=document.createElement("div");
+   pulse.classList.add("pulse");
+   radar.appendChild(pulse);
+   addLog("PULSO DE RADAR EMITIDO");
+   setTimeout(()=>{pulse.remove();},1000);
+   break;
+ }
+});
+</script>
+</body>
+</html>
